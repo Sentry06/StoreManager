@@ -1,0 +1,17 @@
+body{
+    background:#f5f7fb;
+}
+
+.card{
+    border-radius:18px;
+}
+
+.btn{
+    border-radius:10px;
+}
+
+input,
+textarea,
+select{
+    border-radius:10px !important;
+}
