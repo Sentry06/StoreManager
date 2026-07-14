@@ -63,13 +63,22 @@ StoreManager
 
 Atualmente a aplicação possui:
 
-- Cadastro de produtos
-- Listagem de produtos
-- Exclusão de produtos
-- Integração com MongoDB Atlas
-- API REST
-- Interface em React
-- Arquitetura em camadas
+- ✅ Cadastro de produtos
+- ✅ Listagem de produtos
+- ✅ Exclusão de produtos
+- ✅ **Edição de produtos**
+- ✅ **Busca em tempo real** por nome, descrição e categoria
+- ✅ **Filtro por categoria** com opção "Todos"
+- ✅ **Filtro por status de estoque** (Disponível, Estoque Baixo, Sem Estoque)
+- ✅ **Ordenação de produtos** (recentes, nome A-Z, nome Z-A, menor preço, maior preço, maior estoque, menor estoque)
+- ✅ **Dashboard com estatísticas** (Total de produtos, Disponíveis, Estoque Baixo, Valor Total em Estoque)
+- ✅ **Gráfico de Pizza** mostrando distribuição por categoria
+- ✅ **Gráfico de Barras** mostrando estoque por categoria
+- ✅ **Controle de estoque** com validação
+- ✅ Integração com MongoDB Atlas
+- ✅ API REST completa
+- ✅ Interface em React com Vite
+- ✅ Arquitetura em camadas
 
 ---
 
@@ -125,7 +134,45 @@ Define o modelo dos documentos utilizando Mongoose.
 
 ---
 
-# 🌐 Endpoints da API
+# � Estrutura do Frontend
+
+O frontend foi desenvolvido em React com Vite, possuindo uma organização bem estruturada:
+
+```
+Components
+
+├── SearchBar.jsx          (Busca em tempo real)
+├── FilterBar.jsx          (Filtro por categoria)
+├── StatusFilter.jsx       (Filtro por status de estoque)
+├── SortBar.jsx            (Múltiplas opções de ordenação)
+├── ProductForm.jsx        (Formulário para criar/editar produtos)
+├── ProductList.jsx        (Lista de produtos)
+├── ProductCard.jsx        (Cartão individual de produto)
+├── Header.jsx             (Cabeçalho da aplicação)
+├── dashboard/
+│   ├── Dashboard.jsx      (Dashboard principal com estatísticas)
+│   ├── StatCard.jsx       (Cartões de estatísticas)
+│   ├── CategoryPieChart.jsx   (Gráfico de pizza)
+│   └── StockBarChart.jsx      (Gráfico de barras)
+└── ...
+
+```
+
+### Componentes Principais
+
+**SearchBar**: Busca em tempo real por nome, descrição e categoria.
+
+**FilterBar**: Filtro dinâmico por categorias extraídas dos produtos.
+
+**StatusFilter**: Filtro avançado por status (Disponível, Estoque Baixo, Sem Estoque).
+
+**SortBar**: 7 opções de ordenação (Recentes, Nome A-Z, Nome Z-A, Menor Preço, Maior Preço, Maior Estoque, Menor Estoque).
+
+**Dashboard**: Visualização de estatísticas com cartões informativos e gráficos (Pizza e Barras).
+
+**ProductForm**: Formulário inteligente para criar novos produtos ou editar produtos existentes.
+
+# �🌐 Endpoints da API
 
 ## Listar produtos
 
@@ -177,7 +224,64 @@ DELETE
 
 ---
 
-# 💾 Banco de Dados
+# � Funcionalidades de Busca e Filtro
+
+## Busca em Tempo Real
+
+A busca funciona simultaneamente em:
+
+- Nome do produto
+- Descrição
+- Categoria
+
+## Filtros Disponíveis
+
+### Filtro por Categoria
+
+- Lista dinâmica de categorias extraídas dos produtos
+- Opção "Todos" para visualizar produtos de todas as categorias
+
+### Filtro por Status de Estoque
+
+- **Todos**: Mostra todos os produtos
+- **Disponíveis**: Produtos com stock > 0
+- **Estoque Baixo**: Produtos com 0 < stock <= 5
+- **Sem Estoque**: Produtos com stock = 0
+
+## Ordenação
+
+7 opções de ordenação disponíveis:
+
+1. **Mais Recentes**: Ordenação por data de criação (descrescente)
+2. **Nome (A-Z)**: Ordem alfabética crescente
+3. **Nome (Z-A)**: Ordem alfabética decrescente
+4. **Menor Preço**: Ordenação crescente de preço
+5. **Maior Preço**: Ordenação decrescente de preço
+6. **Maior Estoque**: Produtos com maior quantidade em estoque
+7. **Menor Estoque**: Produtos com menor quantidade em estoque
+
+---
+
+# 📊 Dashboard e Visualizações
+
+O dashboard exibe:
+
+### Cartões de Estatísticas
+
+- **Total de Produtos**: Quantidade total de itens cadastrados
+- **Produtos Disponíveis**: Produtos com stock > 0
+- **Estoque Baixo**: Produtos com quantidade crítica (≤ 5 unidades)
+- **Valor Total em Estoque**: Somatório de (preço × quantidade) em BRL
+
+### Gráficos
+
+**Gráfico de Pizza**: Distribuição de produtos por categoria
+
+**Gráfico de Barras**: Total de itens em estoque por categoria
+
+---
+
+# �💾 Banco de Dados
 
 Foi utilizado o **MongoDB Atlas** como banco de dados em nuvem.
 
@@ -292,22 +396,42 @@ http://localhost:5173
 - axios
 - bootstrap
 - react-icons
+- react-chartjs-2
+- chart.js
+- react-toastify
 - vite
 
 ---
 
 # 📸 Funcionamento
 
-Fluxo da aplicação:
+## Fluxo de Criação/Edição de Produtos
 
-1. O usuário preenche o formulário.
-2. O React envia os dados utilizando Axios.
-3. O Express recebe a requisição.
-4. O Controller encaminha ao Service.
-5. O Service utiliza o Repository.
-6. O Repository salva os dados utilizando o Model do Mongoose.
-7. O MongoDB Atlas armazena o documento.
-8. O frontend atualiza automaticamente a lista de produtos.
+1. O usuário preenche o formulário (nome, descrição, categoria, preço, estoque, imagem).
+2. Ao enviar, o React valida os dados.
+3. O Axios envia a requisição (POST para criar, PUT para editar).
+4. O Express recebe a requisição no controller.
+5. O Controller encaminha ao Service.
+6. O Service realiza validações de negócio.
+7. O Service utiliza o Repository.
+8. O Repository salva/atualiza os dados usando o Model do Mongoose.
+9. O MongoDB Atlas armazena o documento.
+10. O frontend atualiza a lista de produtos automaticamente.
+
+## Fluxo de Busca e Filtro
+
+1. O usuário interage com SearchBar, FilterBar, StatusFilter ou SortBar.
+2. Os valores são armazenados no estado React.
+3. O App.jsx aplica os filtros e ordenação em tempo real.
+4. A lista é renderizada com ProductList e ProductCard.
+
+## Visualização de Dashboard
+
+1. O Dashboard.jsx carrega os produtos via API.
+2. Calcula estatísticas (total, disponíveis, estoque baixo, valor total).
+3. Extrai categorias dos produtos.
+4. Chart.js renderiza os gráficos (Pizza e Barras).
+5. Exibe informações em tempo real com atualização automática.
 
 ---
 
@@ -315,15 +439,14 @@ Fluxo da aplicação:
 
 Algumas funcionalidades podem ser adicionadas futuramente:
 
-- Editar produtos
-- Pesquisa de produtos
-- Dashboard com estatísticas
-- Filtro por categoria
-- Upload de imagens
-- Controle de estoque
-- Paginação
+- Upload de imagens com preview
+- Paginação de produtos
 - Autenticação de usuários
+- Controle de permissões (Admin/Usuário)
 - Modo escuro
+- Relatórios avançados em PDF
+- Sistema de notificações por email
+- Integração com sistema de pagamento
 
 ---
 
