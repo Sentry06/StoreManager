@@ -1,6 +1,6 @@
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaEdit } from "react-icons/fa";
 
-function ProductCard({ product, onDelete }) {
+function ProductCard({ product, onDelete, onEdit }) {
   return (
     <div className="card shadow-sm border-0 h-100">
       {product.image && (
@@ -26,11 +26,19 @@ function ProductCard({ product, onDelete }) {
         <p>Estoque: {product.stock}</p>
 
         <button
-          className="btn btn-outline-danger w-100"
+          className="btn btn-outline-danger w-100 delete-button"
           onClick={() => onDelete(product._id)}
         >
           <FaTrash className="me-2" />
           Excluir
+        </button>
+
+        <button
+          className="btn btn-outline-primary w-100 mb-2 edit-button"
+          onClick={() => onEdit(product)}
+        >
+          <FaEdit className="me-2" />
+          Editar
         </button>
       </div>
     </div>

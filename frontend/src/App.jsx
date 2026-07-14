@@ -8,6 +8,7 @@ import { getProducts, deleteProduct } from "./services/api";
 
 function App() {
   const [products, setProducts] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   async function loadProducts() {
     const data = await getProducts();
@@ -30,9 +31,17 @@ function App() {
     <div className="container py-5">
       <Header />
 
-      <ProductForm reloadProducts={loadProducts} />
+      <ProductForm
+        reloadProducts={loadProducts}
+        editingProduct={editingProduct}
+        setEditingProduct={setEditingProduct}
+      />
 
-      <ProductList products={products} onDelete={handleDelete} />
+      <ProductList
+        products={products}
+        onDelete={handleDelete}
+        onEdit={setEditingProduct}
+      />
     </div>
   );
 }

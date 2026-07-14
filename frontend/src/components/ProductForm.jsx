@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { createProduct } from "../services/api";
+import { useEffect, useState } from "react";
+import { createProduct, updateProduct } from "../services/api";
 
-function ProductForm({ reloadProducts }) {
+function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -11,6 +11,20 @@ function ProductForm({ reloadProducts }) {
     image: "",
     available: true,
   });
+
+  useEffect(() => {
+    if (editingProduct) {
+      setForm({
+        name: editingProduct.name,
+        description: editingProduct.description,
+        category: editingProduct.category,
+        price: editingProduct.price,
+        stock: editingProduct.stock,
+        image: editingProduct.image,
+        available: editingProduct.available,
+      });
+    }
+  }, [editingProduct]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -24,11 +38,18 @@ function ProductForm({ reloadProducts }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await createProduct({
+    const productData = {
       ...form,
       price: Number(form.price),
       stock: Number(form.stock),
-    });
+    };
+
+    if (editingProduct) {
+      await updateProduct(editingProduct._id, productData);
+      setEditingProduct(null);
+    } else {
+      await createProduct({ ...productData });
+    }
 
     setForm({
       name: "",
@@ -46,7 +67,9 @@ function ProductForm({ reloadProducts }) {
   return (
     <div className="card shadow border-0">
       <div className="card-body">
-        <h3 className="mb-4">Novo Produto</h3>
+        <h3 className="mb-4">
+          {editingProduct ? "Editar Produto" : "Novo Produto"}
+        </h3>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
@@ -137,7 +160,31 @@ function ProductForm({ reloadProducts }) {
             <label className="form-check-label">Produto disponível</label>
           </div>
 
-          <button className="btn btn-primary w-100">Salvar Produto</button>
+          <button className="btn btn-primary w-100 save-button">
+            {editingProduct ? "Atualizar Produto" : "Salvar Produto"}
+          </button>
+
+          {editingProduct && (
+            <button
+              type="button"
+              className="btn btn-secondary w-100 mt-2"
+              onClick={() => {
+                setEditingProduct(null);
+
+                setForm({
+                  name: "",
+                  description: "",
+                  category: "",
+                  price: "",
+                  stock: "",
+                  image: "",
+                  available: true,
+                });
+              }}
+            >
+              Cancelar edição
+            </button>
+          )}
         </form>
       </div>
     </div>
