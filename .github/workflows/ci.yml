@@ -1,26 +1,24 @@
-name: Pipeline CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
 jobs:
-  testes:
+  backend:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      - name: Baixar codigo
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
+          node-version: 18
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Instalar dependencias
-        run: pip install -r requirements.txt
+      - name: Instalar dependências
+        run: npm ci
 
-      - name: Executar testes
-        run: python -m pytest
+      - name: Validar app
+        run: node --check src/server.js
