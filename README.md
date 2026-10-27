@@ -294,7 +294,7 @@ A conexão é realizada através do Mongoose utilizando variáveis de ambiente.
 ## 1. Clonar o repositório
 
 ```bash
-git clone URL_DO_REPOSITORIO
+git clone https://github.com/Sentry06/StoreManager.git
 ```
 
 ---
