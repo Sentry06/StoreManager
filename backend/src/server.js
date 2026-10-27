@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDatabase = require("./database/database");
 require("dotenv").config();
+const = "erro-intencional";
 
 const productRoutes = require("./routes/productRoutes");
 
