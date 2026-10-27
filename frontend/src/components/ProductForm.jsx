@@ -1,39 +1,40 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createProduct, updateProduct } from "../services/api";
-import { toast } from "react-toastify";
+
+const emptyForm = {
+  name: "",
+  description: "",
+  category: "",
+  price: "",
+  stock: "",
+  image: "",
+  available: true,
+};
 
 function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    category: "",
-    price: "",
-    stock: "",
-    image: "",
-    available: true,
-  });
-
-  useEffect(() => {
-    if (editingProduct) {
-      setForm({
-        name: editingProduct.name,
-        description: editingProduct.description,
-        category: editingProduct.category,
-        price: editingProduct.price,
-        stock: editingProduct.stock,
-        image: editingProduct.image,
-        available: editingProduct.available,
-      });
+  const [form, setForm] = useState(() => {
+    if (!editingProduct) {
+      return { ...emptyForm };
     }
-  }, [editingProduct]);
+
+    return {
+      name: editingProduct.name ?? "",
+      description: editingProduct.description ?? "",
+      category: editingProduct.category ?? "",
+      price: editingProduct.price ?? "",
+      stock: editingProduct.stock ?? "",
+      image: editingProduct.image ?? "",
+      available: editingProduct.available ?? true,
+    };
+  });
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
 
-    setForm({
-      ...form,
+    setForm((previousForm) => ({
+      ...previousForm,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   }
 
   async function handleSubmit(e) {
@@ -45,24 +46,23 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
       stock: Number(form.stock),
     };
 
-    if (editingProduct) {
-      await updateProduct(editingProduct._id, productData);
-      setEditingProduct(null);
-    } else {
-      await createProduct({ ...productData });
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct._id, productData);
+        setEditingProduct(null);
+      } else {
+        await createProduct(productData);
+      }
+
+      setForm({ ...emptyForm });
+      await reloadProducts();
+    } catch (error) {
+      console.error("Erro ao salvar produto:", error);
     }
+  }
 
-    setForm({
-      name: "",
-      description: "",
-      category: "",
-      price: "",
-      stock: "",
-      image: "",
-      available: true,
-    });
-
-    reloadProducts();
+  function handleCancelEdit() {
+    setEditingProduct(null);
   }
 
   return (
@@ -74,9 +74,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label">Nome</label>
-
+            <label className="form-label" htmlFor="product-name">
+              Nome
+            </label>
             <input
+              id="product-name"
               className="form-control"
               name="name"
               value={form.name}
@@ -86,9 +88,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Descrição</label>
-
+            <label className="form-label" htmlFor="product-description">
+              Descrição
+            </label>
             <textarea
+              id="product-description"
               className="form-control"
               rows="3"
               name="description"
@@ -99,9 +103,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
 
           <div className="row">
             <div className="col-md-6 mb-3">
-              <label className="form-label">Categoria</label>
-
+              <label className="form-label" htmlFor="product-category">
+                Categoria
+              </label>
               <input
+                id="product-category"
                 className="form-control"
                 name="category"
                 value={form.category}
@@ -111,9 +117,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
             </div>
 
             <div className="col-md-3 mb-3">
-              <label className="form-label">Preço</label>
-
+              <label className="form-label" htmlFor="product-price">
+                Preço
+              </label>
               <input
+                id="product-price"
                 type="number"
                 step="0.01"
                 className="form-control"
@@ -125,9 +133,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
             </div>
 
             <div className="col-md-3 mb-3">
-              <label className="form-label">Estoque</label>
-
+              <label className="form-label" htmlFor="product-stock">
+                Estoque
+              </label>
               <input
+                id="product-stock"
                 type="number"
                 className="form-control"
                 name="stock"
@@ -139,9 +149,11 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">URL da imagem</label>
-
+            <label className="form-label" htmlFor="product-image">
+              URL da imagem
+            </label>
             <input
+              id="product-image"
               className="form-control"
               name="image"
               value={form.image}
@@ -151,14 +163,16 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
 
           <div className="form-check mb-4">
             <input
+              id="product-available"
               type="checkbox"
               className="form-check-input"
               name="available"
               checked={form.available}
               onChange={handleChange}
             />
-
-            <label className="form-check-label">Produto disponível</label>
+            <label className="form-check-label" htmlFor="product-available">
+              Produto disponível
+            </label>
           </div>
 
           <button className="btn btn-primary w-100 save-button">
@@ -169,19 +183,7 @@ function ProductForm({ reloadProducts, editingProduct, setEditingProduct }) {
             <button
               type="button"
               className="btn btn-secondary w-100 mt-2"
-              onClick={() => {
-                setEditingProduct(null);
-
-                setForm({
-                  name: "",
-                  description: "",
-                  category: "",
-                  price: "",
-                  stock: "",
-                  image: "",
-                  available: true,
-                });
-              }}
+              onClick={handleCancelEdit}
             >
               Cancelar edição
             </button>

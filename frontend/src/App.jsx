@@ -18,32 +18,61 @@ function App() {
   const [sortBy, setSortBy] = useState("recent");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editingProduct, setEditingProduct] = useState(null);
-  const [status, setStatus] = useState("all");
 
   async function loadProducts() {
-    const data = await getProducts();
-    setProducts(data);
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
+    }
   }
 
   useEffect(() => {
-    loadProducts();
+    let active = true;
+
+    async function fetchProducts() {
+      try {
+        const data = await getProducts();
+
+        if (active) {
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+      }
+    }
+
+    fetchProducts();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function handleDelete(id) {
-    if (!window.confirm("Deseja excluir este produto?")) return;
+    if (!window.confirm("Deseja excluir este produto?")) {
+      return;
+    }
 
-    await deleteProduct(id);
-
-    loadProducts();
+    try {
+      await deleteProduct(id);
+      await loadProducts();
+    } catch (error) {
+      console.error("Erro ao excluir produto:", error);
+    }
   }
 
   const filteredProducts = products.filter((product) => {
+    const searchTerm = search.toLowerCase();
+
     const matchesSearch =
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.description?.toLowerCase().includes(search.toLowerCase()) ||
-      product.category?.toLowerCase().includes(search.toLowerCase());
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.description?.toLowerCase().includes(searchTerm) ||
+      product.category?.toLowerCase().includes(searchTerm);
+
     const matchesCategory =
-      category === "Todos" ? true : product.category === category;
+      category === "Todos" || product.category === category;
 
     const matchesStatus =
       statusFilter === "all"
@@ -116,6 +145,7 @@ function App() {
       <SortBar sortBy={sortBy} setSortBy={setSortBy} />
 
       <ProductForm
+        key={editingProduct?._id ?? "new-product"}
         reloadProducts={loadProducts}
         editingProduct={editingProduct}
         setEditingProduct={setEditingProduct}
