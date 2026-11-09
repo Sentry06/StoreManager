@@ -7,7 +7,9 @@ const productRoutes = require("./routes/productRoutes");
 
 const app = express();
 
-connectDatabase();
+if (process.env.SKIP_DB_CONNECTION !== "true") {
+  connectDatabase();
+}
 
 app.use(cors());
 app.use(express.json());
@@ -19,6 +21,13 @@ const PORT = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.json({
     message: "Store Manager API funcionando 🚀",
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "storemanager-backend",
   });
 });
 

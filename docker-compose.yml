@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    container_name: storemanager-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: storemanager-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
