@@ -1,0 +1,62 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Construir imagem do backend
+        run: docker build -t storemanager-backend ./backend
+
+      - name: Construir imagem do frontend
+        run: docker build -t storemanager-frontend ./frontend
+
+      - name: Iniciar container do backend
+        run: |
+          docker run -d \
+            --name storemanager-api \
+            -p 3000:3000 \
+            -e SKIP_DB_CONNECTION=true \
+            storemanager-backend
+
+      - name: Aguardar a API iniciar
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent http://localhost:3000/health; then
+              echo "API disponivel!"
+              break
+            fi
+
+            if [ "$attempt" -eq 20 ]; then
+              echo "A API nao iniciou corretamente."
+              docker logs storemanager-api
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+      - name: Executar teste automatizado
+        run: node backend/tests/healthcheck.js
+
+      - name: Exibir logs em caso de falha
+        if: failure()
+        run: docker logs storemanager-api || true
+
+      - name: Limpar container
+        if: always()
+        run: docker rm -f storemanager-api || true

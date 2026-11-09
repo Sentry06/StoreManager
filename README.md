@@ -450,6 +450,138 @@ Algumas funcionalidades podem ser adicionadas futuramente:
 
 ---
 
+---
+
+# 🐳 Dockerização da aplicação
+
+O projeto foi containerizado utilizando Docker, com imagens independentes para o backend e o frontend.
+
+- **Backend:** imagem baseada em Node.js 22 Alpine.
+- **Frontend:** aplicação compilada com Vite e disponibilizada por meio do Nginx.
+- **Docker Compose:** responsável por coordenar os containers e suas respectivas portas.
+
+## Executar com Docker Compose
+
+Antes de iniciar, crie o arquivo `backend/.env` com as variáveis:
+
+```env
+PORT=3000
+MONGO_URI=sua_string_de_conexao_do_mongodb
+```
+
+Na pasta principal do projeto, execute:
+
+```bash
+docker compose up -d --build
+```
+
+Verifique os containers:
+
+```bash
+docker compose ps
+```
+
+A aplicação estará disponível nos seguintes endereços:
+
+- Frontend: http://localhost:8080
+- Backend: http://localhost:3000
+- Verificação da API: http://localhost:3000/health
+
+Para encerrar os containers:
+
+```bash
+docker compose down
+```
+
+O arquivo `.env` contém informações sensíveis e não deve ser enviado ao GitHub.
+
+---
+
+# ⚙️ Integração Contínua (CI) com GitHub Actions
+
+Foi implementado um workflow localizado em:
+
+```text
+.github/workflows/docker-ci.yml
+```
+
+A integração contínua é acionada automaticamente em:
+
+- Push na branch `main`.
+- Pull Requests direcionadas à branch `main`.
+
+O workflow executa as seguintes etapas:
+
+1. Obtém o código do repositório.
+2. Configura o Node.js 22.
+3. Constrói a imagem Docker do backend.
+4. Constrói a imagem Docker do frontend.
+5. Inicia o container do backend.
+6. Aguarda a disponibilidade da API.
+7. Executa o teste automatizado.
+8. Exibe os logs em caso de falha e remove o container ao final.
+
+Durante a execução automatizada, foi utilizada a variável `SKIP_DB_CONNECTION=true`, permitindo testar a disponibilidade da API sem depender de uma conexão com o MongoDB Atlas.
+
+## Teste automatizado
+
+Foi criado o arquivo:
+
+```text
+backend/tests/healthcheck.js
+```
+
+O teste verifica se o endpoint `/health`:
+
+- Retorna o código HTTP 200.
+- Apresenta o campo `status` com o valor `ok`.
+- Identifica corretamente o serviço `storemanager-backend`.
+
+Para executar o teste localmente, utilize:
+
+```bash
+node backend/tests/healthcheck.js
+```
+
+Resultado esperado:
+
+```text
+Iniciando teste de saúde da API...
+Teste aprovado! API respondendo corretamente.
+```
+
+## Simulação de falha e recuperação
+
+Para verificar se o mecanismo de CI identificava erros, foi realizada uma alteração proposital no endpoint `/health`, substituindo temporariamente o valor `ok` por `error`.
+
+O container iniciou normalmente e a API respondeu com HTTP 200. Entretanto, o teste automatizado identificou a inconsistência no conteúdo da resposta e encerrou sua execução com código 1.
+
+Consequentemente, o GitHub Actions marcou o workflow como falho.
+
+Após identificar a causa, o valor foi corrigido para `ok`. Uma nova execução foi realizada e todos os testes foram aprovados.
+
+### Evidências das execuções
+
+| Etapa                | Resultado                |
+| -------------------- | ------------------------ |
+| Primeira validação   | Testes aprovados         |
+| Introdução do erro   | CI identificou a falha   |
+| Correção do endpoint | CI executada com sucesso |
+
+**Execução com falha proposital:**
+
+https://github.com/Sentry06/StoreManager/actions/runs/42680276259
+
+**Execução após a correção:**
+
+https://github.com/Sentry06/StoreManager/actions/runs/42681033400
+
+**Pull Request utilizada:**
+
+https://github.com/Sentry06/StoreManager/pull/7
+
+---
+
 # 👨‍💻 Autor
 
 **Igor Santos**
